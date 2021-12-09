@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/sangianpatrick/devoria-article-service/crypto"
+	"github.com/sangianpatrick/devoria-article-service/domain/account/entity"
 	"github.com/sangianpatrick/devoria-article-service/exception"
 	"github.com/sangianpatrick/devoria-article-service/jwt"
 	"github.com/sangianpatrick/devoria-article-service/response"
@@ -74,7 +75,7 @@ func (u *accountUsecaseImpl) Register(ctx context.Context, params AccountRegistr
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
 	encryptedPassword := u.crypto.Encrypt(params.Password, u.globalIV)
-	newAccount := Account{}
+	newAccount := entity.Account{}
 	newAccount.Email = params.Email
 	newAccount.Password = &encryptedPassword
 	newAccount.FirstName = params.FirstName
@@ -87,7 +88,7 @@ func (u *accountUsecaseImpl) Register(ctx context.Context, params AccountRegistr
 	}
 	newAccount.ID = ID
 
-	claims := AccountStandardJWTClaims{}
+	claims := entity.AccountStandardJWTClaims{}
 	claims.Email = newAccount.Email
 	claims.Subject = fmt.Sprintf("%d", newAccount.ID)
 	claims.IssuedAt = time.Now().Unix()
@@ -100,7 +101,7 @@ func (u *accountUsecaseImpl) Register(ctx context.Context, params AccountRegistr
 
 	newAccountBuff, _ := json.Marshal(newAccount)
 
-	err = u.session.Set(ctx, fmt.Sprintf(AccountSessionKeyFormat, newAccount.Email), newAccountBuff)
+	err = u.session.Set(ctx, fmt.Sprintf(entity.AccountSessionKeyFormat, newAccount.Email), newAccountBuff)
 	if err != nil {
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
@@ -130,20 +131,20 @@ func (u *accountUsecaseImpl) Login(ctx context.Context, params AccountAuthentica
 		return response.Error(response.StatusInvalidPayload, nil, exception.ErrBadRequest)
 	}
 
-	claims := AccountStandardJWTClaims{}
+	claims := entity.AccountStandardJWTClaims{}
 	claims.Email = account.Email
 	claims.Subject = fmt.Sprintf("%d", account.ID)
 	claims.IssuedAt = time.Now().Unix()
 	claims.ExpiresAt = time.Now().Add(time.Hour * 24 * 1).Unix()
 
 	token, err := u.jsonWebToken.Sign(ctx, claims)
-	if err == nil {
+	if err != nil {
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
 
 	accountBuff, _ := json.Marshal(account)
 
-	err = u.session.Set(ctx, fmt.Sprintf(AccountSessionKeyFormat, account.Email), accountBuff)
+	err = u.session.Set(ctx, fmt.Sprintf(entity.AccountSessionKeyFormat, account.Email), accountBuff)
 	if err != nil {
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
@@ -159,9 +160,13 @@ func (u *accountUsecaseImpl) Login(ctx context.Context, params AccountAuthentica
 	return response.Success(response.StatusOK, accountAuthenticationResponse)
 }
 func (u *accountUsecaseImpl) GetProfile(ctx context.Context) (resp response.Response) {
-	account, ok := ctx.Value(AccountContextKey{}).(Account)
-	if !ok {
-		return response.Error(response.StatusUnauthorized, nil, exception.ErrUnauthorized)
+	email := ctx.Value(entity.EmailCtx).(string)
+	account, err := u.repository.FindByEmail(ctx, email)
+	if err != nil {
+		if err == exception.ErrNotFound {
+			return response.Error(response.StatusInvalidPayload, nil, exception.ErrBadRequest)
+		}
+		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
 
 	return response.Success(response.StatusOK, account)

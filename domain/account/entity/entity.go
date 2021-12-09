@@ -1,4 +1,4 @@
-package account
+package entity
 
 import (
 	"time"
@@ -8,7 +8,9 @@ import (
 
 const AccountSessionKeyFormat = "account:session:%s"
 
-type AccountContextKey struct{}
+type AccountContextKey string
+
+const EmailCtx AccountContextKey = "email"
 
 // Account is a collection of proprty of account.
 type Account struct {

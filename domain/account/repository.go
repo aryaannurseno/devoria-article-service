@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/sangianpatrick/devoria-article-service/domain/account/entity"
 	"github.com/sangianpatrick/devoria-article-service/exception"
 )
 
 type AccountRepository interface {
-	Save(ctx context.Context, account Account) (ID int64, err error)
-	Update(ctx context.Context, ID int64, updatedAccount Account) (err error)
-	FindByEmail(ctx context.Context, email string) (account Account, err error)
-	FindByID(ctx context.Context, ID int64) (account Account, err error)
+	Save(ctx context.Context, account entity.Account) (ID int64, err error)
+	Update(ctx context.Context, ID int64, updatedAccount entity.Account) (err error)
+	FindByEmail(ctx context.Context, email string) (account entity.Account, err error)
+	FindByID(ctx context.Context, ID int64) (account entity.Account, err error)
 }
 
 type accountRepositoryImpl struct {
@@ -28,7 +29,7 @@ func NewAccountRepository(db *sql.DB, tableName string) AccountRepository {
 	}
 }
 
-func (r *accountRepositoryImpl) Save(ctx context.Context, account Account) (ID int64, err error) {
+func (r *accountRepositoryImpl) Save(ctx context.Context, account entity.Account) (ID int64, err error) {
 	command := fmt.Sprintf("INSERT INTO %s (email, password, firstName, lastName, createdAt) VALUES (?, ?, ?, ?, ?)", r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, command)
 	if err != nil {
@@ -56,7 +57,7 @@ func (r *accountRepositoryImpl) Save(ctx context.Context, account Account) (ID i
 	return
 }
 
-func (r *accountRepositoryImpl) Update(ctx context.Context, ID int64, updatedAccount Account) (err error) {
+func (r *accountRepositoryImpl) Update(ctx context.Context, ID int64, updatedAccount entity.Account) (err error) {
 	command := fmt.Sprintf(`UPDATE %s SET password = ?, firstName = ?, lastName = ?, lastModified = ? WHERE id = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, command)
 	if err != nil {
@@ -89,7 +90,7 @@ func (r *accountRepositoryImpl) Update(ctx context.Context, ID int64, updatedAcc
 	return
 }
 
-func (r *accountRepositoryImpl) FindByEmail(ctx context.Context, email string) (account Account, err error) {
+func (r *accountRepositoryImpl) FindByEmail(ctx context.Context, email string) (account entity.Account, err error) {
 	query := fmt.Sprintf(`SELECT id, email, password, firstName, lastName, createdAt, lastModified FROM %s WHERE email = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
@@ -130,7 +131,7 @@ func (r *accountRepositoryImpl) FindByEmail(ctx context.Context, email string) (
 	return
 }
 
-func (r *accountRepositoryImpl) FindByID(ctx context.Context, ID int64) (account Account, err error) {
+func (r *accountRepositoryImpl) FindByID(ctx context.Context, ID int64) (account entity.Account, err error) {
 	query := fmt.Sprintf(`SELECT id, email, password, firstName, lastName, createdAt, lastModified FROM %s WHERE id = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {

@@ -53,10 +53,11 @@ func main() {
 
 	accountRepository := account.NewAccountRepository(db, "account")
 	accountUsecase := account.NewAccountUsecase(cfg.GlobalIV, sess, jsonWebToken, encryption, location, accountRepository)
-	account.NewAccountHTTPHandler(router, basicAuthMiddleware, vld, accountUsecase)
+	bearerAuthMiddleware := middleware.NewBearerAuth(jsonWebToken)
+	account.NewAccountHTTPHandler(router, basicAuthMiddleware, bearerAuthMiddleware, vld, accountUsecase)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%s", cfg.App.Port),
+		Addr:    fmt.Sprintf("127.0.0.1:%s", cfg.App.Port),
 		Handler: router,
 	}
 

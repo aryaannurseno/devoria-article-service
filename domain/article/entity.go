@@ -3,7 +3,7 @@ package article
 import (
 	"time"
 
-	"github.com/sangianpatrick/devoria-article-service/domain/account"
+	"github.com/sangianpatrick/devoria-article-service/domain/account/entity"
 )
 
 // ArticleStatus is a type of article current status.
@@ -24,5 +24,5 @@ type Article struct {
 	CreatedAt      time.Time
 	PublishedAt    *time.Time
 	LastModifiedAt *time.Time
-	Author         account.Account
+	Author         entity.Account
 }
