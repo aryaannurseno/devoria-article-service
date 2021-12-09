@@ -19,6 +19,7 @@ import (
 	"github.com/sangianpatrick/devoria-article-service/config"
 	"github.com/sangianpatrick/devoria-article-service/crypto"
 	"github.com/sangianpatrick/devoria-article-service/domain/account"
+	"github.com/sangianpatrick/devoria-article-service/domain/article"
 	"github.com/sangianpatrick/devoria-article-service/jwt"
 	"github.com/sangianpatrick/devoria-article-service/middleware"
 	"github.com/sangianpatrick/devoria-article-service/session"
@@ -52,9 +53,12 @@ func main() {
 	router := mux.NewRouter()
 
 	accountRepository := account.NewAccountRepository(db, "account")
+	articleRepository := article.NewArticleRepository(db, "article")
 	accountUsecase := account.NewAccountUsecase(cfg.GlobalIV, sess, jsonWebToken, encryption, location, accountRepository)
+	articleUsecase := article.NewArticleUsecase(cfg.GlobalIV, sess, jsonWebToken, encryption, location, articleRepository, accountRepository)
 	bearerAuthMiddleware := middleware.NewBearerAuth(jsonWebToken)
 	account.NewAccountHTTPHandler(router, basicAuthMiddleware, bearerAuthMiddleware, vld, accountUsecase)
+	article.NewArticleHTTPHandler(router, bearerAuthMiddleware, vld, articleUsecase)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%s", cfg.App.Port),
