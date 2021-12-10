@@ -18,6 +18,7 @@ type ArticleHTTPHandler struct {
 
 func NewArticleHTTPHandler(
 	router *mux.Router,
+	basicAuthMiddleware middleware.RouteMiddleware,
 	bearerAuthMiddleware middleware.RouteMiddlewareBearer,
 	validate *validator.Validate,
 	usecase ArticleUsecase,
@@ -29,7 +30,7 @@ func NewArticleHTTPHandler(
 
 	router.HandleFunc("/v1/article", bearerAuthMiddleware.VerifyBearer(handler.Create)).Methods(http.MethodPost)
 	router.HandleFunc("/v1/article/status/{id:[0-9]+}", bearerAuthMiddleware.VerifyBearer(handler.Edit)).Methods(http.MethodPut)
-	router.HandleFunc("/v1/article/all", bearerAuthMiddleware.VerifyBearer(handler.GetAllPublic)).Methods(http.MethodGet)
+	router.HandleFunc("/v1/article/all", basicAuthMiddleware.Verify(handler.GetAllPublic)).Methods(http.MethodGet)
 
 }
 

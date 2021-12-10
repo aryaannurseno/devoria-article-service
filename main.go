@@ -58,7 +58,7 @@ func main() {
 	articleUsecase := article.NewArticleUsecase(cfg.GlobalIV, sess, jsonWebToken, encryption, location, articleRepository, accountRepository)
 	bearerAuthMiddleware := middleware.NewBearerAuth(jsonWebToken)
 	account.NewAccountHTTPHandler(router, basicAuthMiddleware, bearerAuthMiddleware, vld, accountUsecase)
-	article.NewArticleHTTPHandler(router, bearerAuthMiddleware, vld, articleUsecase)
+	article.NewArticleHTTPHandler(router, basicAuthMiddleware, bearerAuthMiddleware, vld, articleUsecase)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%s", cfg.App.Port),
