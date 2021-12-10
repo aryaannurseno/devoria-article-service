@@ -135,7 +135,7 @@ func (r *articleRepositoryImpl) FindByID(ctx context.Context, ID int64) (article
 	return
 }
 func (r *articleRepositoryImpl) FindMany(ctx context.Context) (bunchOfArticles []Article, err error) {
-	query := fmt.Sprintf(`SELECT id, title, subtitle, content, createdAt, publishedAt, lastModifiedAt, authorId FROM %s`, r.tableName)
+	query := fmt.Sprintf(`SELECT id, title, subtitle, content, status, createdAt, publishedAt, lastModifiedAt, authorId FROM %s`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Println(err)
@@ -163,6 +163,7 @@ func (r *articleRepositoryImpl) FindMany(ctx context.Context) (bunchOfArticles [
 			&article.Title,
 			&article.Subtitle,
 			&article.Content,
+			&article.Status,
 			&article.CreatedAt,
 			&publishedAt,
 			&lastModifiedAt,

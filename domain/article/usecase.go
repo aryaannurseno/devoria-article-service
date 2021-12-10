@@ -16,6 +16,7 @@ import (
 type ArticleUsecase interface {
 	Create(ctx context.Context, params CreateArticleRequest) (resp response.Response)
 	Edit(ctx context.Context, params EditArticleRequest) (resp response.Response)
+	GetAllPublic(ctx context.Context) (resp response.Response)
 }
 
 type articleUsecaseImpl struct {
@@ -106,4 +107,30 @@ func (u *articleUsecaseImpl) Edit(ctx context.Context, params EditArticleRequest
 	}
 
 	return response.Success(response.StatusOK, params.ID)
+}
+
+func (u *articleUsecaseImpl) GetAllPublic(ctx context.Context) (resp response.Response) {
+	articles, err := u.repository.FindMany(ctx)
+	if err != nil {
+		if err == exception.ErrNotFound {
+			return response.Error(response.StatusNotFound, nil, exception.ErrBadRequest)
+		}
+		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
+	}
+	var arr []GetAll
+
+	for _, element := range articles {
+		m := GetAll{}
+		m.ID = element.ID
+		m.Title = element.Title
+		m.Content = element.Content
+		m.Status = element.Status
+		m.CreatedAt = element.CreatedAt
+		m.LastModifiedAt = element.LastModifiedAt
+		m.AuthorID = element.Author.ID
+
+		arr = append(arr, m)
+	}
+
+	return response.Success(response.StatusOK, arr)
 }
