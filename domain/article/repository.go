@@ -190,7 +190,7 @@ func (r *articleRepositoryImpl) FindMany(ctx context.Context) (bunchOfArticles [
 	return
 }
 func (r *articleRepositoryImpl) FindManySpecificProfile(ctx context.Context, authorId int64) (bunchOfArticles []Article, err error) {
-	query := fmt.Sprintf(`SELECT id, title, subtitle, content, createdAt, publishedAt, lastModifiedAt, authorId FROM %s WHERE id = ?`, r.tableName)
+	query := fmt.Sprintf(`SELECT id, title, subtitle, content, createdAt, publishedAt, lastModifiedAt, authorId FROM %s WHERE authorId = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Println(err)

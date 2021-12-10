@@ -31,6 +31,7 @@ func NewArticleHTTPHandler(
 	router.HandleFunc("/v1/article", bearerAuthMiddleware.VerifyBearer(handler.Create)).Methods(http.MethodPost)
 	router.HandleFunc("/v1/article/status/{id:[0-9]+}", bearerAuthMiddleware.VerifyBearer(handler.Edit)).Methods(http.MethodPut)
 	router.HandleFunc("/v1/article/all", basicAuthMiddleware.Verify(handler.GetAllPublic)).Methods(http.MethodGet)
+	router.HandleFunc("/v1/article/my-articles", bearerAuthMiddleware.VerifyBearer(handler.GetAllPrivate)).Methods(http.MethodGet)
 
 }
 
@@ -94,5 +95,13 @@ func (handler *ArticleHTTPHandler) GetAllPublic(w http.ResponseWriter, r *http.R
 	var ctx = r.Context()
 
 	resp = handler.Usecase.GetAllPublic(ctx)
+	resp.JSON(w)
+}
+
+func (handler *ArticleHTTPHandler) GetAllPrivate(w http.ResponseWriter, r *http.Request) {
+	var resp response.Response
+	var ctx = r.Context()
+
+	resp = handler.Usecase.GetAllPrivate(ctx)
 	resp.JSON(w)
 }
