@@ -15,6 +15,7 @@ import (
 
 type ArticleUsecase interface {
 	Create(ctx context.Context, params CreateArticleRequest) (resp response.Response)
+	Edit(ctx context.Context, params EditArticleRequest) (resp response.Response)
 }
 
 type articleUsecaseImpl struct {
@@ -75,5 +76,34 @@ func (u *articleUsecaseImpl) Create(ctx context.Context, params CreateArticleReq
 
 	newArticle.ID = ID
 
-	return response.Success(response.StatusOK, newArticle)
+	return response.Success(response.StatusCreated, newArticle)
+}
+
+func (u *articleUsecaseImpl) Edit(ctx context.Context, params EditArticleRequest) (resp response.Response) {
+	// Get detail author/account
+	email := ctx.Value(entity.EmailCtx).(string)
+	account, err := u.accountRepo.FindByEmail(ctx, email)
+	if err != nil {
+		if err == exception.ErrNotFound {
+			return response.Error(response.StatusInvalidPayload, nil, exception.ErrBadRequest)
+		}
+		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
+	}
+
+	lastModifiedAt := time.Now().In(u.location)
+
+	newArticle := Article{}
+	newArticle.Title = params.Title
+	newArticle.Subtitle = params.Subtitle
+	newArticle.Content = params.Content
+	newArticle.LastModifiedAt = &lastModifiedAt
+	err = u.repository.Update(ctx, params.ID, account.ID, newArticle)
+	if err != nil {
+		if err == exception.ErrNotFound {
+			return response.Error(response.StatusForbiddend, nil, exception.ErrBadRequest)
+		}
+		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
+	}
+
+	return response.Success(response.StatusOK, params.ID)
 }

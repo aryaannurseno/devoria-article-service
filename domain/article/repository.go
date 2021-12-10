@@ -11,7 +11,7 @@ import (
 
 type ArticleRepository interface {
 	Save(ctx context.Context, article Article) (ID int64, err error)
-	Update(ctx context.Context, ID int64, updatedArticle Article) (err error)
+	Update(ctx context.Context, ID int64, authorId int64, updatedArticle Article) (err error)
 	FindByID(ctx context.Context, ID int64) (article Article, err error)
 	FindMany(ctx context.Context) (bunchOfArticles []Article, err error)
 	FindManySpecificProfile(ctx context.Context, authorId int64) (bunchOfArticles []Article, err error)
@@ -58,8 +58,8 @@ func (r *articleRepositoryImpl) Save(ctx context.Context, article Article) (ID i
 	return
 }
 
-func (r *articleRepositoryImpl) Update(ctx context.Context, ID int64, updatedArticle Article) (err error) {
-	command := fmt.Sprintf(`UPDATE %s SET title = ?, subtitle = ?, content = ?, status = ? WHERE id = ?`, r.tableName)
+func (r *articleRepositoryImpl) Update(ctx context.Context, ID int64, authorId int64, updatedArticle Article) (err error) {
+	command := fmt.Sprintf(`UPDATE %s SET title = ?, subtitle = ?, content = ?, lastModifiedAt = ? WHERE id = ? AND authorId = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, command)
 	if err != nil {
 		log.Println(err)
@@ -73,9 +73,9 @@ func (r *articleRepositoryImpl) Update(ctx context.Context, ID int64, updatedArt
 		updatedArticle.Title,
 		updatedArticle.Subtitle,
 		updatedArticle.Content,
-		updatedArticle.Status,
-		*updatedArticle.PublishedAt,
-		updatedArticle.LastModifiedAt,
+		*updatedArticle.LastModifiedAt,
+		ID,
+		authorId,
 	)
 
 	if err != nil {
