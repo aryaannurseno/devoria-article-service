@@ -28,10 +28,14 @@ func NewArticleHTTPHandler(
 		Usecase:  usecase,
 	}
 
-	router.HandleFunc("/v1/article", bearerAuthMiddleware.VerifyBearer(handler.Create)).Methods(http.MethodPost)
-	router.HandleFunc("/v1/article/status/{id:[0-9]+}", bearerAuthMiddleware.VerifyBearer(handler.Edit)).Methods(http.MethodPut)
+	//Get
 	router.HandleFunc("/v1/article/all", basicAuthMiddleware.Verify(handler.GetAllPublic)).Methods(http.MethodGet)
 	router.HandleFunc("/v1/article/my-articles", bearerAuthMiddleware.VerifyBearer(handler.GetAllPrivate)).Methods(http.MethodGet)
+	//Post
+	router.HandleFunc("/v1/article", bearerAuthMiddleware.VerifyBearer(handler.Create)).Methods(http.MethodPost)
+	//Put
+	router.HandleFunc("/v1/article/{id:[0-9]+}", bearerAuthMiddleware.VerifyBearer(handler.Edit)).Methods(http.MethodPut)
+	router.HandleFunc("/v1/article/status/{id:[0-9]+}", bearerAuthMiddleware.VerifyBearer(handler.EditStatus)).Methods(http.MethodPut)
 
 }
 
@@ -103,5 +107,37 @@ func (handler *ArticleHTTPHandler) GetAllPrivate(w http.ResponseWriter, r *http.
 	var ctx = r.Context()
 
 	resp = handler.Usecase.GetAllPrivate(ctx)
+	resp.JSON(w)
+}
+
+func (handler *ArticleHTTPHandler) EditStatus(w http.ResponseWriter, r *http.Request) {
+	var resp response.Response
+	var params EditStatusArticleRequest
+	var ctx = r.Context()
+	path := mux.Vars(r)
+	id := path["id"]
+
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		resp = response.Error(response.StatusUnprocessabelEntity, nil, err)
+		resp.JSON(w)
+		return
+	}
+
+	params.ID, err = strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		resp = response.Error(response.StatusUnprocessabelEntity, nil, err)
+		resp.JSON(w)
+		return
+	}
+
+	err = handler.Validate.StructCtx(ctx, params)
+	if err != nil {
+		resp = response.Error(response.StatusInvalidPayload, nil, err)
+		resp.JSON(w)
+		return
+	}
+
+	resp = handler.Usecase.EditStatus(ctx, params)
 	resp.JSON(w)
 }

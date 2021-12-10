@@ -15,6 +15,7 @@ type ArticleRepository interface {
 	FindByID(ctx context.Context, ID int64) (article Article, err error)
 	FindMany(ctx context.Context) (bunchOfArticles []Article, err error)
 	FindManySpecificProfile(ctx context.Context, authorId int64) (bunchOfArticles []Article, err error)
+	UpdateStatus(ctx context.Context, ID int64, authorId int64, updatedArticle Article) (err error)
 }
 
 type articleRepositoryImpl struct {
@@ -93,7 +94,7 @@ func (r *articleRepositoryImpl) Update(ctx context.Context, ID int64, authorId i
 	return
 }
 func (r *articleRepositoryImpl) FindByID(ctx context.Context, ID int64) (article Article, err error) {
-	query := fmt.Sprintf(`SELECT id, title, subtitle, content, createdAt, publishedAt, lastModifiedAt, authorId FROM %s WHERE id = ?`, r.tableName)
+	query := fmt.Sprintf(`SELECT id, title, subtitle, content, status, createdAt, publishedAt, lastModifiedAt, authorId FROM %s WHERE id = ?`, r.tableName)
 	stmt, err := r.db.PrepareContext(ctx, query)
 	if err != nil {
 		log.Println(err)
@@ -112,6 +113,7 @@ func (r *articleRepositoryImpl) FindByID(ctx context.Context, ID int64) (article
 		&article.Title,
 		&article.Subtitle,
 		&article.Content,
+		&article.Status,
 		&article.CreatedAt,
 		&publishedAt,
 		&lastModifiedAt,
@@ -239,6 +241,38 @@ func (r *articleRepositoryImpl) FindManySpecificProfile(ctx context.Context, aut
 		}
 
 		bunchOfArticles = append(bunchOfArticles, article)
+	}
+
+	return
+}
+func (r *articleRepositoryImpl) UpdateStatus(ctx context.Context, ID int64, authorId int64, updatedArticle Article) (err error) {
+	command := fmt.Sprintf(`UPDATE %s SET status = ?, publishedAt = ? WHERE id = ? AND authorId = ?`, r.tableName)
+	stmt, err := r.db.PrepareContext(ctx, command)
+	if err != nil {
+		log.Println(err)
+		err = exception.ErrInternalServer
+		return
+	}
+	defer stmt.Close()
+
+	result, err := stmt.ExecContext(
+		ctx,
+		updatedArticle.Status,
+		updatedArticle.PublishedAt,
+		ID,
+		authorId,
+	)
+
+	if err != nil {
+		log.Println(err)
+		err = exception.ErrInternalServer
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected < 1 {
+		err = exception.ErrNotFound
+		return
 	}
 
 	return
