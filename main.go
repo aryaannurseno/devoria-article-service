@@ -23,6 +23,7 @@ import (
 	"github.com/sangianpatrick/devoria-article-service/jwt"
 	"github.com/sangianpatrick/devoria-article-service/middleware"
 	"github.com/sangianpatrick/devoria-article-service/session"
+	"go.elastic.co/apm/module/apmgorilla"
 )
 
 func main() {
@@ -51,6 +52,7 @@ func main() {
 	basicAuthMiddleware := middleware.NewBasicAuth(cfg.BasicAuth.Username, cfg.BasicAuth.Password)
 
 	router := mux.NewRouter()
+	apmgorilla.Instrument(router)
 
 	accountRepository := account.NewAccountRepository(db, "account")
 	articleRepository := article.NewArticleRepository(db, "article")

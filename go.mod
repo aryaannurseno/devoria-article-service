@@ -13,4 +13,5 @@ require (
 	github.com/mergermarket/go-pkcs7 v0.0.0-20170926155232-153b18ea13c9
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
+	go.elastic.co/apm/module/apmgorilla v1.15.0
 )
