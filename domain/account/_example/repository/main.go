@@ -45,7 +45,7 @@ func main() {
 
 	accountRepository := account.NewAccountRepository(db, "account")
 	newAccountPassword := "123456"
-	newAccount := account.Account{
+	newAccount := entity.Account{
 		Email:          "johndoe@mail.com",
 		Password:       &newAccountPassword,
 		FirstName:      "John",
