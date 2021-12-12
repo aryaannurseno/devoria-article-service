@@ -19,3 +19,7 @@ type EditStatusArticleRequest struct {
 	ID     int64         `json:"id" validate:"required"`
 	Status ArticleStatus `json:"status" validate:"required"`
 }
+
+type GetOneArticleRequest struct {
+	ID     int64         `json:"id" validate:"required"`
+}

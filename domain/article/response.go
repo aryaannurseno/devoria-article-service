@@ -11,7 +11,7 @@ type CreateArticleResponse struct {
 	Profile entity.Account `json:"profile"`
 }
 
-type GetAll struct {
+type GetArticleResponse struct {
 	ID             int64         `json:"id"`
 	Title          string        `json:"title"`
 	Subtitle       string        `json:"subtitle"`

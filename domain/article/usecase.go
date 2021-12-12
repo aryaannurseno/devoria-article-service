@@ -19,6 +19,7 @@ type ArticleUsecase interface {
 	GetAllPublic(ctx context.Context) (resp response.Response)
 	GetAllPrivate(ctx context.Context) (resp response.Response)
 	EditStatus(ctx context.Context, params EditStatusArticleRequest) (resp response.Response)
+	GetOne(ctx context.Context, params GetOneArticleRequest) (resp response.Response)
 }
 
 type articleUsecaseImpl struct {
@@ -119,10 +120,10 @@ func (u *articleUsecaseImpl) GetAllPublic(ctx context.Context) (resp response.Re
 		}
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
-	var arr []GetAll
+	var arr []GetArticleResponse
 
 	for _, element := range articles {
-		m := GetAll{}
+		m := GetArticleResponse{}
 		m.ID = element.ID
 		m.Title = element.Title
 		m.Content = element.Content
@@ -155,10 +156,10 @@ func (u *articleUsecaseImpl) GetAllPrivate(ctx context.Context) (resp response.R
 		}
 		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
 	}
-	var arr []GetAll
+	var arr []GetArticleResponse
 
 	for _, element := range articles {
-		m := GetAll{}
+		m := GetArticleResponse{}
 		m.ID = element.ID
 		m.Title = element.Title
 		m.Content = element.Content
@@ -232,4 +233,16 @@ func (u *articleUsecaseImpl) EditStatus(ctx context.Context, params EditStatusAr
 	}
 
 	return response.Success(response.StatusOK, params)
+}
+
+func (u *articleUsecaseImpl) GetOne(ctx context.Context, params GetOneArticleRequest) (resp response.Response) {
+	article, err := u.repository.FindByID(ctx, params.ID)
+	if err != nil {
+		if err == exception.ErrNotFound {
+			return response.Error(response.StatusNotFound, nil, exception.ErrBadRequest)
+		}
+		return response.Error(response.StatusUnexpectedError, nil, exception.ErrInternalServer)
+	}
+
+	return response.Success(response.StatusOK, article)
 }
