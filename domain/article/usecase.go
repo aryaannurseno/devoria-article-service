@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/sangianpatrick/devoria-article-service/crypto"
@@ -160,11 +161,14 @@ func (u *articleUsecaseImpl) GetAllPrivate(ctx context.Context) (resp response.R
 
 	for _, element := range articles {
 		m := GetArticleResponse{}
+		fmt.Println(element)
 		m.ID = element.ID
 		m.Title = element.Title
+		m.Subtitle = element.Subtitle
 		m.Content = element.Content
 		m.Status = element.Status
 		m.CreatedAt = element.CreatedAt
+		m.PublishedAt = element.PublishedAt
 		m.LastModifiedAt = element.LastModifiedAt
 		m.AuthorID = element.Author.ID
 
