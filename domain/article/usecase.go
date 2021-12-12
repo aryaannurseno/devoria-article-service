@@ -216,7 +216,7 @@ func (u *articleUsecaseImpl) EditStatus(ctx context.Context, params EditStatusAr
 		}
 		publishedAt := time.Now().In(u.location)
 		newArticle.PublishedAt = &publishedAt
-		
+
 	} else if params.Status == ArticleStatusArchived {
 		//Check if article status is stil draft
 		if article.Status == ArticleStatusDraft {
